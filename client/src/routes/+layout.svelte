@@ -1,5 +1,7 @@
 <script>
-    import "../app.css";
+    import "../app.pcss";
 </script>
 
-<slot />
+<div class="container mx-auto">
+    <slot />
+</div>
