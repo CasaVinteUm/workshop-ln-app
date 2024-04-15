@@ -1,13 +1,46 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
     import type { PageServerData } from "./$types";
+    import { getInvoiceStatus } from "$lib";
 
     export let data: PageServerData;
 
     let playerOneName: string = "";
     let playerTwoName: string = "";
+    let invoicesPaid: boolean = false;
 
-    console.log(data.playerOne!.invoice);
+    onMount(() => {
+        const interval = setInterval(async () => {
+            await checkInvoices();
+
+            if (invoicesPaid) {
+                clearInterval(interval);
+            }
+        }, 1000 * 10);
+    });
+
+    async function checkInvoices(): Promise<void> {
+        if (!data.playerOne || !data.playerTwo) {
+            return;
+        }
+        const playerOneInvoicePaid = await getInvoiceStatus(data.playerOne.id);
+        const playerTwoInvoicePaid = await getInvoiceStatus(data.playerTwo.id);
+
+        invoicesPaid = playerOneInvoicePaid.paid && playerTwoInvoicePaid.paid;
+
+        return;
+    }
+
+    function copyToClipboard(payRequest: string | undefined) {
+        if (!payRequest) {
+            return;
+        }
+
+        navigator.clipboard.writeText(payRequest);
+
+        return;
+    }
 
     function submit() {
         if (playerOneName === "" || playerTwoName === "") {
@@ -19,7 +52,12 @@
         }
 
         goto(`/${playerOneName}-${playerTwoName}`);
+
+        return;
     }
+
+    $: disabled = false;
+    // $: disabled = playerOneName === "" || playerTwoName === "" || !invoicesPaid;
 </script>
 
 <svelte:head>
@@ -43,10 +81,18 @@
                     />
                 </label>
                 {#if data.playerOne}
-                    <qr-code
-                        class="visible max-h-96 max-w-96 dark:invert"
-                        contents={`lightning:${data.playerOne.invoice.paymentRequest}`}
-                    />
+                    <button
+                        on:click={() =>
+                            data.playerOne &&
+                            copyToClipboard(
+                                data.playerOne.invoice.paymentRequest,
+                            )}
+                    >
+                        <qr-code
+                            class="visible max-h-96 max-w-96 dark:invert"
+                            contents={`lightning:${data.playerOne.invoice.paymentRequest}`}
+                        />
+                    </button>
                 {/if}
             </div>
             <div>
@@ -59,14 +105,26 @@
                         bind:value={playerTwoName}
                     />
                 </label>
-                <qr-code
-                    class="visible max-h-96 max-w-96 dark:invert"
-                    contents={`lightning:${data.playerTwo.invoice.paymentRequest}`}
-                />
+                {#if data.playerTwo}
+                    <button
+                        on:click={() =>
+                            data.playerTwo &&
+                            copyToClipboard(
+                                data.playerTwo.invoice.paymentRequest,
+                            )}
+                    >
+                        <qr-code
+                            class="visible max-h-96 max-w-96 dark:invert"
+                            contents={`lightning:${data.playerTwo.invoice.paymentRequest}`}
+                        />
+                    </button>
+                {/if}
             </div>
         </div>
         <div class="end-0 flex justify-end pt-4">
-            <button type="submit" class="variant-filled btn">Lesgo</button>
+            <button type="submit" class="variant-filled btn" {disabled}
+                >Lesgo</button
+            >
         </div>
     </form>
 </div>

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+const API_ENDPOINT: string = "http://localhost:8000";
+
 type GetInvoicesResponse = z.infer<typeof GetInvoicesResponse>;
 
 const GetInvoicesResponse = z.object({
@@ -14,6 +16,17 @@ const GetInvoicesResponse = z.object({
 });
 
 export const getInvoices = async (): Promise<GetInvoicesResponse> =>
-    fetch("http://localhost:5000/api/invoicesForPlayers")
+    fetch(`${API_ENDPOINT}/api/invoicesForPlayers`)
         .then((a) => a.json())
         .then(GetInvoicesResponse.parse);
+
+type GetInvoiceStatusResponse = z.infer<typeof GetInvoiceStatusResponse>;
+
+const GetInvoiceStatusResponse = z.object({
+    paid: z.boolean(),
+})
+
+export const getInvoiceStatus = async (id: number): Promise<GetInvoiceStatusResponse> =>
+    fetch(`${API_ENDPOINT}/api/invoiceStatus/${id}`)
+        .then((a) => a.json())
+        .then(GetInvoiceStatusResponse.parse)

@@ -12,8 +12,8 @@ export const load: PageServerLoad = async () => {
                 invoice: bolt11.decode(res.playerOne.invoice),
             },
             playerTwo: {
-                id: res.playerOne.id,
-                invoice: bolt11.decode(res.playerOne.invoice),
+                id: res.playerTwo.id,
+                invoice: bolt11.decode(res.playerTwo.invoice),
             }
         }
     } catch (e) {

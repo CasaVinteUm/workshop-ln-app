@@ -1,5 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import type { PageServerData } from "./$types";
+
+    export let data: PageServerData;
 
     let canvas: HTMLCanvasElement | undefined = undefined;
     let ctx: CanvasRenderingContext2D | null = null;
@@ -28,6 +31,7 @@
     }
 
     interface Player {
+        name: string;
         x: number;
         y: number;
         score: number;
@@ -41,14 +45,20 @@
     };
 
     const initialPlayerY: number = (canvasHeight - paddleHeight) / 2;
-    let playerOne: Player = { x: gap, y: initialPlayerY, score: 0 };
+    let playerOne: Player = { name: "", x: gap, y: initialPlayerY, score: 0 };
     let playerTwo: Player = {
+        name: "",
         x: canvasWidth - paddleWidth - gap,
         y: initialPlayerY,
         score: 0,
     };
 
     onMount(() => {
+        if (data.playerOneName && data.playerTwoName) {
+            playerOne.name = data.playerOneName;
+            playerTwo.name = data.playerTwoName;
+        }
+
         canvas = document.querySelector("#gameCanvas") as HTMLCanvasElement;
         ctx = canvas.getContext("2d");
 
@@ -212,7 +222,7 @@
     <div class="flex-row">
         <div class="flex justify-center">
             <p>
-                Player One: {playerOne.score}, Player Two: {playerTwo.score}
+                {playerOne.name}: {playerOne.score}, {playerTwo.name}: {playerTwo.score}
             </p>
             <p class="ml-3">{`Rally: ${rally}`}</p>
         </div>

@@ -1,8 +1,8 @@
-import express, { Application } from "express";
+import express, { Application, Request } from "express";
 import { invoicesDb } from "../db";
 import { lnd } from "../lnd";
 import { Router } from "express";
-import { createInvoice, getInvoice } from "lightning";
+import { createInvoice, getInvoice, pay } from "lightning";
 
 const router = Router();
 
@@ -10,6 +10,8 @@ const AMOUNT: number = 1000;
 
 router.get('/invoicesForPlayers', async (_req, res) => {
     try {
+        console.log('/invoicesForPlayers');
+
         const invoiceForFirstPlayer = await createInvoice({ lnd, tokens: AMOUNT });
         const playerOneInvoiceHash = invoiceForFirstPlayer.id;
         const playerOnePaymentRequest = invoiceForFirstPlayer.request;
@@ -43,6 +45,8 @@ router.get('/invoicesForPlayers', async (_req, res) => {
 
 router.get('/invoiceStatus/:id', async (req, res) => {
     try {
+        console.log('invoiceStatus');
+
         const { id } = req.params;
         const idAsInt = parseInt(id);
 
@@ -57,6 +61,23 @@ router.get('/invoiceStatus/:id', async (req, res) => {
         return res.status(200).send({ paid: status.is_confirmed });
     } catch (err) {
         console.error("invoiceStatus error: ", err);
+        return res.status(500).send({ error: "Server is dumb" });
+    }
+});
+
+interface PayInvoiceRequest extends Request { body: { invoice: string } };
+
+router.post('/payInvoice/', async (req: PayInvoiceRequest, res) => {
+    try {
+        const invoice = req.body.invoice;
+
+        const outcome = await pay({ lnd, request: invoice });
+
+        return res.status(200).send({
+            success: outcome.is_confirmed,
+        });
+    } catch (error) {
+        console.error("payInvoice error: ", error);
         return res.status(500).send({ error: "Server is dumb" });
     }
 });
