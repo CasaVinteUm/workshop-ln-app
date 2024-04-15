@@ -1,26 +1,19 @@
-import { writable } from 'svelte/store';
+import { z } from 'zod';
 
-export enum AppState {
-    GameStart,
-    RoundStart,
-    Playing,
-    GameFinished,
+type GetInvoicesResponse = z.infer<typeof GetInvoicesResponse>;
 
-    WatingPayments,
-    Winner,
-}
+const GetInvoicesResponse = z.object({
+    playerOne: z.object({
+        id: z.number(),
+        invoice: z.string(),
+    }),
+    playerTwo: z.object({
+        id: z.number(),
+        invoice: z.string(),
+    }),
+});
 
-export interface Ball {
-    x: number,
-    y: number,
-    speedX: number,
-    speedY: number,
-};
-
-export interface Player {
-    x: number,
-    y: number,
-    score: number,
-}
-
-export const appState = writable<AppState>(AppState.GameStart);
+export const getInvoices = async (): Promise<GetInvoicesResponse> =>
+    fetch("http://localhost:5000/api/invoicesForPlayers")
+        .then((a) => a.json())
+        .then(GetInvoicesResponse.parse);

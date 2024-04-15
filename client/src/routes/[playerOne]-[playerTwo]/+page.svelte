@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { type Ball, type Player } from "$lib";
     import { onMount } from "svelte";
 
     let canvas: HTMLCanvasElement | undefined = undefined;
@@ -20,6 +19,19 @@
     const initialBallY: number = canvasHeight / 2;
     const initialBallSpeedX: number = 10;
     const initialBallSpeedY: number = 4;
+
+    interface Ball {
+        x: number;
+        y: number;
+        speedX: number;
+        speedY: number;
+    }
+
+    interface Player {
+        x: number;
+        y: number;
+        score: number;
+    }
 
     let ball: Ball = {
         x: initialBallX,
@@ -78,8 +90,10 @@
             case State.RoundStart:
                 ball.x = initialBallX;
                 ball.y = initialBallY;
-                ball.speedX = initialBallSpeedX * (Math.random() < 0.5 ? -1 : 1);
-                ball.speedY = initialBallSpeedY * (Math.random() < 0.5 ? -1 : 1);
+                ball.speedX =
+                    initialBallSpeedX * (Math.random() < 0.5 ? -1 : 1);
+                ball.speedY =
+                    initialBallSpeedY * (Math.random() < 0.5 ? -1 : 1);
 
                 playerOne.y = initialPlayerY;
                 playerTwo.y = initialPlayerY;
