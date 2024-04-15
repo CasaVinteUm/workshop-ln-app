@@ -1,61 +1,65 @@
 import express, { Application } from "express";
+import { invoicesDb } from "../db";
 import { lnd } from "../lnd";
 import { Router } from "express";
-import { createInvoice, decodePaymentRequest, getInvoice, getPayment } from "lightning";
+import { createInvoice, getInvoice } from "lightning";
 
 const router = Router();
 
-router.get('/decode/:payreq', async (req, res) => {
+const AMOUNT: number = 1000;
+
+router.get('/invoicesForPlayers', async (_req, res) => {
     try {
-        const payreq = req.params.payreq;
-        const decoded = await decodePaymentRequest({ lnd, request: payreq });
+        const invoiceForFirstPlayer = await createInvoice({ lnd, tokens: AMOUNT });
+        const playerOneInvoiceHash = invoiceForFirstPlayer.id;
+        const playerOnePaymentRequest = invoiceForFirstPlayer.request;
 
-        const body = {
-            description: decoded.description,
-            expiresAt: decoded.expires_at,
-            amount: decoded.tokens,
-        };
+        const invoiceForSecondPlayer = await createInvoice({ lnd, tokens: AMOUNT });
+        const playerTwoInvoiceHash = invoiceForSecondPlayer.id;
+        const playerTwoPaymentRequest = invoiceForSecondPlayer.request;
 
-        return res.status(200).send(body);
+        const count = invoicesDb.size;
+        const playerOneInvoiceId = count + 1;
+        const playerTwoInvoiceId = count + 2;
+
+        invoicesDb.set(playerOneInvoiceId, playerTwoInvoiceHash);
+        invoicesDb.set(playerTwoInvoiceId, playerOneInvoiceHash);
+
+        return res.status(200).send({
+            playerOne: {
+                id: playerOneInvoiceId,
+                invoice: playerOnePaymentRequest,
+            },
+            playerTwo: {
+                id: playerTwoInvoiceId,
+                invoice: playerTwoPaymentRequest,
+            }
+        });
     } catch (err) {
-        console.error("Error decoding payreq: ", err);
-        return res.status(500).send(err);
+        console.error("invoicesForPlayers error: ", err);
+        return res.status(500).send({ error: "Server is dumb" });
     }
 });
 
-router.get('/createInvoice/:amount', async (req, res) => {
+router.get('/invoiceStatus/:id', async (req, res) => {
     try {
-        const amount = parseInt(req.params.amount);
-        const invoice = await createInvoice({ lnd, tokens: amount });
-        const payreq = invoice.request;
+        const { id } = req.params;
+        const idAsInt = parseInt(id);
 
-        return res.status(200).send({ payreq });
+        const invoiceHash = invoicesDb.get(idAsInt);
+
+        if (!invoiceHash) {
+            return res.status(404).send({ error: "Invoice not found" });
+        }
+
+        const status = await getInvoice({ lnd, id: invoiceHash });
+
+        return res.status(200).send({ paid: status.is_confirmed });
     } catch (err) {
-        console.error("Error creating invoice: ", err);
-        return res.status(500).send(err);
+        console.error("invoiceStatus error: ", err);
+        return res.status(500).send({ error: "Server is dumb" });
     }
 });
-
-router.get('/getInvoiceStatus/:payreq', async (req, res) => {
-    try {
-        const payreq = req.params.payreq;
-        const invoice = await getInvoice({ lnd, id: payreq });
-
-        const body = {
-            confirmed: invoice.is_confirmed,
-            confirmedAt: invoice.confirmed_at,
-            expiresAt: invoice.expires_at,
-            amount: invoice.tokens,
-        };
-
-        return res.status(200).send(body);
-    } catch (err) {
-
-    }
-});
-
-router.post('/payInvoice', async () => { });
-router.get('/paymentStatus', async () => { });
 
 export const ln = router;
 
