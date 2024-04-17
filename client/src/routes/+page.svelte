@@ -51,6 +51,10 @@
             return;
         }
 
+        if (!invoicesPaid) {
+            return;
+        }
+
         goto(`/${playerOneName}-${playerTwoName}`);
 
         return;
