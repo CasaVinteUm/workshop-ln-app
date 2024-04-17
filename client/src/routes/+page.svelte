@@ -2,7 +2,6 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import type { PageServerData } from "./$types";
-    import { getInvoiceStatus } from "$lib";
 
     export let data: PageServerData;
 
@@ -11,25 +10,11 @@
     let invoicesPaid: boolean = false;
 
     onMount(() => {
-        const interval = setInterval(async () => {
-            await checkInvoices();
-
-            if (invoicesPaid) {
-                clearInterval(interval);
-            }
-        }, 1000 * 10);
+        console.log("TODO");
     });
 
     async function checkInvoices(): Promise<void> {
-        if (!data.playerOne || !data.playerTwo) {
-            return;
-        }
-        const playerOneInvoicePaid = await getInvoiceStatus(data.playerOne.id);
-        const playerTwoInvoicePaid = await getInvoiceStatus(data.playerTwo.id);
-
-        invoicesPaid = playerOneInvoicePaid.paid && playerTwoInvoicePaid.paid;
-
-        return;
+        console.log("TODO");
     }
 
     function copyToClipboard(payRequest: string | undefined) {
@@ -43,24 +28,9 @@
     }
 
     function submit() {
-        if (playerOneName === "" || playerTwoName === "") {
-            return;
-        }
-
-        if (playerOneName.length < 3 || playerTwoName.length < 3) {
-            return;
-        }
-
-        if (!invoicesPaid) {
-            return;
-        }
-
-        goto(`/${playerOneName}-${playerTwoName}`);
-
-        return;
+        console.log("TODO");
     }
 
-    // $: disabled = false;
     $: disabled = playerOneName === "" || playerTwoName === "" || !invoicesPaid;
 </script>
 

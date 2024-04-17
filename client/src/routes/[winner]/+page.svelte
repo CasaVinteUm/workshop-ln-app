@@ -1,22 +1,11 @@
 <script lang="ts">
-    import { payInvoice } from "$lib";
     import type { PageServerData } from "./$types";
 
     export let data: PageServerData;
     let payreq: string = "";
 
     function pay(): void {
-        if (payreq === "") {
-            return;
-        }
-
-        payInvoice(payreq)
-            .then((_) => {
-                alert("Payment successful");
-            })
-            .catch((e) => {
-                console.error("error paying invoice", e);
-            });
+        console.log("TODO");
     }
 </script>
 
