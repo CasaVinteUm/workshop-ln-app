@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import type { PageServerData } from "./$types";
+    import { goto } from "$app/navigation";
 
     export let data: PageServerData;
 
@@ -68,6 +69,16 @@
             }
 
             state = tick(state);
+
+            if (state === State.GameFinished) {
+                const winner =
+                    playerOne.score > playerTwo.score
+                        ? playerOne.name
+                        : playerTwo.name;
+
+                goto(`/${winner}`);
+            }
+
             draw();
         }, 1000 / framesPerSecond);
 

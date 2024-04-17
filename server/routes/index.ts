@@ -65,13 +65,13 @@ router.get('/invoiceStatus/:id', async (req, res) => {
     }
 });
 
-interface PayInvoiceRequest extends Request { body: { invoice: string } };
+interface PayInvoiceRequest extends Request { body: { payreq: string } };
 
 router.post('/payInvoice/', async (req: PayInvoiceRequest, res) => {
     try {
-        const invoice = req.body.invoice;
+        const payreq = req.body.payreq;
 
-        const outcome = await pay({ lnd, request: invoice });
+        const outcome = await pay({ lnd, request: payreq });
 
         return res.status(200).send({
             success: outcome.is_confirmed,
