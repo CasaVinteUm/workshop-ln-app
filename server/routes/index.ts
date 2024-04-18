@@ -68,7 +68,18 @@ router.get('/invoiceStatus/:id', async (req, res) => {
 interface PayInvoiceRequest extends Request { body: { payreq: string } };
 
 router.post('/payInvoice/', async (req: PayInvoiceRequest, res) => {
-    console.log("TODO");
+    try {
+        const payreq = req.body.payreq;
+
+        const outcome = await pay({ lnd, request: payreq });
+
+        return res.status(200).send({
+            success: outcome.is_confirmed,
+        });
+    } catch (error) {
+        console.error("payInvoice error: ", error);
+        return res.status(500).send({ error: "Server is dumb" });
+    }
 });
 
 export const ln = router;
