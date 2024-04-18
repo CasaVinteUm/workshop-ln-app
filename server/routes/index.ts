@@ -44,7 +44,25 @@ router.get('/invoicesForPlayers', async (_req, res) => {
 });
 
 router.get('/invoiceStatus/:id', async (req, res) => {
-    console.log("TODO");
+    try {
+        console.log('invoiceStatus');
+
+        const { id } = req.params;
+        const idAsInt = parseInt(id);
+
+        const invoiceHash = invoicesDb.get(idAsInt);
+
+        if (!invoiceHash) {
+            return res.status(404).send({ error: "Invoice not found" });
+        }
+
+        const status = await getInvoice({ lnd, id: invoiceHash });
+
+        return res.status(200).send({ paid: status.is_confirmed });
+    } catch (err) {
+        console.error("invoiceStatus error: ", err);
+        return res.status(500).send({ error: "Server is dumb" });
+    }
 });
 
 interface PayInvoiceRequest extends Request { body: { payreq: string } };
